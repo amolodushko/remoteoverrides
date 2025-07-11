@@ -2,12 +2,14 @@ import TableHeader from "./components/tableHeader";
 import NameColumn from "./components/nameColumn";
 import OverrideColumn from "./components/overrideColumn";
 import ActionsColumn from "./components/actionsColumn";
-import { useAppSelectionStore, allApps } from "../../stores/appSelectionStore";
+import { useAppSelectionStore } from "../../stores/appSelectionStore";
 
 const Table = () => {
+  const getAllApps = useAppSelectionStore((state) => state.getAllApps);
   const selectedApps = useAppSelectionStore((state) => state.selectedApps || []);
   
-  // Filter data based on selected apps
+  // Get all apps (including created ones) and filter based on selected apps
+  const allApps = getAllApps();
   const data = allApps.filter(app => selectedApps.includes(app.key));
 
   return (

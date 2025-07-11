@@ -17,7 +17,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen flex max-w:1200 flex-col gap-2">
+    <div className="h-screen flex max-w:1200 flex-col gap-2 overflow-y-auto">
       <Header onSettingsClick={() => setIsSettingsModalOpen(true)} />
       <Table />
       <SettingsModal 

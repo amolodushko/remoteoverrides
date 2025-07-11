@@ -52,7 +52,7 @@ const SettingsModal = ({
               onClick={onCreateAppClick}
               className="text-xs px-1 py-1 bg-green-600 text-white rounded hover:bg-green-700"
             >
-              + Create New App
+              + Add New App MF config
             </button>
           <button
             onClick={onClose}

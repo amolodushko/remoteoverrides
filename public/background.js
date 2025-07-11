@@ -114,7 +114,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             
             // Save to localStorage
             localStorage.setItem('remoteOverrides', newOverrides);
-            
+            localStorage.setItem('viaDebug', "true");
             return newOverrides;
           },
           args: [
@@ -128,6 +128,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             sendResponse({ success: false, error: chrome.runtime.lastError.message });
           } else {
             sendResponse({ success: true, result: result });
+          }
+        });
+      } else {
+        sendResponse({ success: false, error: 'No active tab found' });
+      }
+    });
+    return true; // Keep message channel open for async response
+  }
+
+  if (request.type === 'REMOVE_ALL_OVERRIDES') {
+    // Remove all overrides from the active tab's localStorage
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const currentTab = tabs[0];
+      if (currentTab && currentTab.id) {
+        chrome.scripting.executeScript({
+          target: { tabId: currentTab.id },
+          func: () => {
+            // Remove the remoteOverrides key from localStorage
+            localStorage.removeItem('remoteOverrides');
+            return true;
+          }
+        }, (result) => {
+          if (chrome.runtime.lastError) {
+            console.error('Script execution error:', chrome.runtime.lastError);
+            sendResponse({ success: false, error: chrome.runtime.lastError.message });
+          } else {
+            sendResponse({ success: true });
           }
         });
       } else {

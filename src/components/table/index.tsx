@@ -3,14 +3,48 @@ import NameColumn from "./components/nameColumn";
 import OverrideColumn from "./components/overrideColumn";
 import ActionsColumn from "./components/actionsColumn";
 import { useAppSelectionStore } from "../../stores/appSelectionStore";
+import { useOverrideStore } from "../../stores/overrideStore";
 
 const Table = () => {
   const getAllApps = useAppSelectionStore((state) => state.getAllApps);
   const selectedApps = useAppSelectionStore((state) => state.selectedApps || []);
+  const autorefresh = useOverrideStore((state) => state.autorefresh);
+  const setOverride = useOverrideStore((state) => state.setOverride);
+  const getOverride = useOverrideStore((state) => state.getOverride);
   
   // Get all apps (including created ones) and filter based on selected apps
   const allApps = getAllApps();
   const data = allApps.filter(app => selectedApps.includes(app.key));
+
+  const handleRemoveAllOverrides = () => {
+    // Remove all overrides from the current page's localStorage
+    if (typeof chrome !== "undefined" && chrome.runtime) {
+      chrome.runtime.sendMessage({
+        type: "REMOVE_ALL_OVERRIDES",
+      });
+    }
+
+    // Clear overrides in store for all apps
+    data.forEach(app => {
+      const currentOverride = getOverride(app.key);
+      setOverride(app.key, {
+        override: "",
+        input_1: currentOverride?.input_1 || "",
+        input_2: currentOverride?.input_2 || "",
+        selection: currentOverride?.selection || 0,
+      });
+    });
+
+    // Refresh page if autorefresh is enabled
+    if (autorefresh && typeof chrome !== "undefined" && chrome.tabs) {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const currentTab = tabs[0];
+        if (currentTab && currentTab.id) {
+          chrome.tabs.reload(currentTab.id);
+        }
+      });
+    }
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -43,6 +77,18 @@ const Table = () => {
             </tbody>
           </table>
         </div>
+        
+        <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
+            <div className="flex justify-end">
+              <button
+                onClick={handleRemoveAllOverrides}
+                className="text-sm px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
+                title="Remove all overrides from localStorage"
+              >
+                Remove all overrides
+              </button>
+            </div>
+          </div>
       </div>
     </div>
   );

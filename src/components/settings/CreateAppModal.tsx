@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { AppData } from "../../stores/appSelectionStore";
+import { useAppSelectionStore } from "../../stores/appSelectionStore";
 
 interface CreateAppModalProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ interface CreateAppModalProps {
 }
 
 const CreateAppModal = ({ isOpen, onClose, onSave }: CreateAppModalProps) => {
+  const getAllApps = useAppSelectionStore((state) => state.getAllApps);
   const [formData, setFormData] = useState({
     app: "",
     label: "",
@@ -32,7 +34,37 @@ const CreateAppModal = ({ isOpen, onClose, onSave }: CreateAppModalProps) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
   };
 
-  const isFormValid = formData.app && formData.label && formData.key && formData.path;
+  const allApps = getAllApps();
+  
+  // Validation functions
+  const getValidationErrors = () => {
+    const errors: string[] = [];
+    
+    // Check for duplicate app code
+    if (allApps.some(app => app.app.toLowerCase() === formData.app.toLowerCase())) {
+      errors.push("App Code already exists");
+    }
+    
+    // Check for duplicate app key
+    if (allApps.some(app => app.key.toLowerCase() === formData.key.toLowerCase())) {
+      errors.push("App Key already exists");
+    }
+    
+    // Check for duplicate app label
+    if (allApps.some(app => app.label.toLowerCase() === formData.label.toLowerCase())) {
+      errors.push("App Label already exists");
+    }
+    
+    // Check for duplicate app path
+    if (allApps.some(app => app.path.toLowerCase() === formData.path.toLowerCase())) {
+      errors.push("App Path already exists");
+    }
+    
+    return errors;
+  };
+  
+  const validationErrors = getValidationErrors();
+  const isFormValid = formData.app && formData.label && formData.key && formData.path && validationErrors.length === 0;
 
   return (
     <div className="fixed inset-0 bg-[rgba(0,0,0,0.8)] flex items-center justify-center z-50" onClick={onClose}>
@@ -50,6 +82,18 @@ const CreateAppModal = ({ isOpen, onClose, onSave }: CreateAppModalProps) => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-black">
+          {validationErrors.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+              <div className="text-sm text-red-800">
+                <p className="font-medium mb-1">Please fix the following errors:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  {validationErrors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
           <div className="">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               App Code *
@@ -112,7 +156,7 @@ const CreateAppModal = ({ isOpen, onClose, onSave }: CreateAppModalProps) => {
               disabled={!isFormValid}
               className="bg-blue-600 text-white px-2 py-1 rounded font-small text-sm disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
-              Create App
+              {validationErrors.length > 0 ? 'Fix Errors' : 'Create App'}
             </button>
           </div>
         </form>

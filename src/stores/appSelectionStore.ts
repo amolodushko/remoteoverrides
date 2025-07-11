@@ -157,12 +157,7 @@ export const useAppSelectionStore = create<AppSelectionStore>()(
     {
       name: "app-selection-storage",
       partialize: (state) => ({
-        selectedApps: [
-          ...new Set([
-            ...(state.selectedApps || []),
-            ...allApps.map((a) => a.key),
-          ]),
-        ],
+        selectedApps: state.selectedApps,
         apps: [
           ...allApps,
           ...state.apps.filter(

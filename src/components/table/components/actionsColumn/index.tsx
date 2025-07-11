@@ -237,7 +237,7 @@ const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
                     onReset();
                   }}
                 >
-                  Reset
+                  Remove
                 </button>
               </div>
             )}

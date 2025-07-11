@@ -12,7 +12,6 @@ export interface AppData {
 interface AppSelectionStore {
   selectedApps: string[];
   apps: AppData[];
-  _persistedApps: AppData[];
   toggleApp: (appKey: string) => void;
   setSelectedApps: (appKeys: string[]) => void;
   isAppSelected: (appKey: string) => boolean;
@@ -56,18 +55,8 @@ export const allApps: AppData[] = [
 export const useAppSelectionStore = create<AppSelectionStore>()(
   persist(
     (set, get) => ({
-      selectedApps: allApps.map(app => app.key) || [], // Default to all selected
-      // apps is a merge of config apps and custom apps from storage
-      get apps() {
-        // Get custom apps (id > 3 and not in allApps)
-        const storedApps = (get()._persistedApps || []) as AppData[];
-        const customApps = storedApps.filter(
-          (a) => a.id > 3 && !allApps.some((conf) => conf.key === a.key)
-        );
-        return [...allApps, ...customApps];
-      },
-      // Internal: only for persistence
-      _persistedApps: [],
+      selectedApps: allApps.map(app => app.key), // Default to all selected
+      apps: [...allApps],
       toggleApp: (appKey: string) => {
         set((state) => {
           const currentSelectedApps = Array.isArray(state.selectedApps) ? state.selectedApps : [];
@@ -93,26 +82,24 @@ export const useAppSelectionStore = create<AppSelectionStore>()(
       },
       addApp: (newApp: Omit<AppData, 'id'>) => {
         set((state) => {
+          // Avoid duplicates
+          if (state.apps.some(app => app.key === newApp.key)) {
+            return {};
+          }
           const newId = Math.max(...state.apps.map(app => app.id), 0) + 1;
           const appToAdd: AppData = { ...newApp, id: newId };
-          // Only custom apps are persisted
-          const customApps = [
-            ...((state._persistedApps as AppData[]) || []),
-            appToAdd,
-          ];
           return {
-            _persistedApps: customApps,
+            apps: [...state.apps, appToAdd],
             selectedApps: [...state.selectedApps, newApp.key],
           };
         });
       },
       deleteApp: (appKey: string) => {
         set((state) => {
-          // Only custom apps are persisted
-          const customApps = ((state._persistedApps as AppData[]) || []).filter(app => app.key !== appKey);
+          const newApps = state.apps.filter(app => app.key !== appKey);
           const newSelectedApps = state.selectedApps.filter(key => key !== appKey);
           return {
-            _persistedApps: customApps,
+            apps: newApps,
             selectedApps: newSelectedApps
           };
         });
@@ -125,10 +112,12 @@ export const useAppSelectionStore = create<AppSelectionStore>()(
       name: 'app-selection-storage',
       partialize: (state) => ({
         selectedApps: [
-          // Always include all config app keys
           ...new Set([...(state.selectedApps || []), ...allApps.map(a => a.key)])
         ],
-        _persistedApps: state._persistedApps,
+        apps: [
+          ...allApps,
+          ...state.apps.filter(app => !allApps.some(a => a.key === app.key))
+        ],
       }),
     }
   )

@@ -43,6 +43,19 @@ export const useOverrideStore = create<OverrideStore>()(
     }),
     {
       name: 'override-storage',
+      partialize: (state) => ({
+        overrides: Object.fromEntries(
+          Object.entries(state.overrides).map(([app, data]) => [
+            app,
+            {
+              input_1: data.input_1,
+              input_2: data.input_2,
+              selection: data.selection,
+              // override field is completely excluded from persistence
+            }
+          ])
+        )
+      })
     }
   )
 ); 

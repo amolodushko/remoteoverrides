@@ -3,7 +3,6 @@ import { useOverrideStore } from "../../../../stores/overrideStore";
 
 const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
   const setOverride = useOverrideStore((state) => state.setOverride);
-  const removeOverride = useOverrideStore((state) => state.removeOverride);
   const getOverride = useOverrideStore((state) => state.getOverride);
   const [selected, setSelected] = useState(0);
   const [inputs, setInputs] = useState(["", ""]);
@@ -15,10 +14,8 @@ const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
   // Load existing data from store on component mount
   useEffect(() => {
     const existingData = getOverride(app);
-    if (existingData) {
-      setInputs([existingData.input_1, existingData.input_2]);
-      setSelected(existingData.selection);
-    }
+    setInputs([existingData?.input_1 ?? '', existingData?.input_2 ?? '']);
+    setSelected(existingData?.selection ?? 0);
   }, [app, getOverride]);
 
   const handleRadioChange = (idx: number) => {
@@ -36,6 +33,18 @@ const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
       next[idx] = val;
       return next;
     });
+  };
+
+  const handleInputBlur = () => {
+    // Save current input values to store on blur
+    const existingData = getOverride(app);
+    const dataToSave = {
+      override: existingData?.override || "",
+      input_1: inputs[0],
+      input_2: inputs[1],
+      selection: selected
+    };
+    setOverride(app, dataToSave);
   };
 
   const normalizeValue = (value: string) => {
@@ -59,11 +68,39 @@ const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
     };
     
     setOverride(app, dataToSave);
+    
+    // Send message to background script to update page localStorage
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      chrome.runtime.sendMessage({
+        type: 'UPDATE_PAGE_OVERRIDE',
+        app: app,
+        value: normalizeValue(value),
+        action: 'apply'
+      });
+    }
+    
     console.log("applied", dataToSave, app);
   };
 
   const onReset = () => {
-    removeOverride(app);
+    const dataToSave = {
+      override: "",
+      input_1: inputs[0],
+      input_2: inputs[1],
+      selection: selected
+    };
+    
+    setOverride(app, dataToSave);
+    
+    // Send message to background script to remove override from page localStorage
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      chrome.runtime.sendMessage({
+        type: 'UPDATE_PAGE_OVERRIDE',
+        app: app,
+        action: 'reset'
+      });
+    }
+    
     console.log("reset", app);
   };
 
@@ -88,6 +125,7 @@ const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
                 value={inputs[idx]}
                 onFocus={() => handleInputFocus(idx)}
                 onChange={(e) => handleInputChange(idx, e.target.value)}
+                onBlur={handleInputBlur}
                 className="px-1 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder={`Branch name to override ${label}`}
               />

@@ -1,5 +1,4 @@
 // Content script for Remote Override Manager
-console.log('Remote Override Manager content script loaded');
 
 // Listen for messages from the popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

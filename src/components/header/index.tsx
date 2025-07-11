@@ -7,7 +7,7 @@ interface HeaderProps {
 const Header = ({ onSettingsClick }: HeaderProps) => {
   return (
     <div className="flex flex-row justify-between gap-4 items-center">
-      <h2 className="text-2xl font-bold">
+      <h2 className="text-2xl font-bold text-gray-700">
         Via Remote Override manager
       </h2>
       <Settings onClick={onSettingsClick} />

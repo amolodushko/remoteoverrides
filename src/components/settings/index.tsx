@@ -4,7 +4,7 @@ interface SettingsProps {
 
 const Settings = ({ onClick }: SettingsProps) => {
   return (
-    <button className="p-1" onClick={onClick}>
+    <button className="p-1 text-gray-700" onClick={onClick}>
       <svg
         className="w-5 h-5"
         fill="none"

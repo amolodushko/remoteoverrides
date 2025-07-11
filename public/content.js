@@ -37,6 +37,42 @@ chrome.runtime.sendMessage({
   data: getPageInfo()
 }); 
 
+function injectBannerWithRetry(currentApp, currentValue, overridesArr) {
+  const maxAttempts = 10; // 10 * 500ms = 5s
+  let attempts = 0;
+  function tryInject() {
+    const header = document.querySelector('[data-testid="voc-header"]');
+    if (header) {
+      // Remove any existing banner first
+      const oldBanner = header.querySelector('.via-remote-override-banner');
+      if (oldBanner) oldBanner.remove();
+      // Create new banner
+      const banner = document.createElement('div');
+      banner.className = 'via-remote-override-banner';
+      banner.style.cssText = `background: #fffbe6; color: #b59f00; border: 1px solid #ffe58f; border-radius: 6px; padding: 4px 12px; margin-bottom: 8px; font-size: 13px; font-family: inherit; font-weight: 500; display: flex; align-items: center; gap: 4px; flex-direction: column; margin-left: 300px; position: absolute; z-index: 8;`;
+      banner.innerHTML =
+        '<button class="via-remote-override-banner-x" style="position:absolute;top:2px;right:-15px;background:none;border:none;color:#b59f00;font-size:16px;cursor:pointer;line-height:1; border-radius: 6px; border: 1px solid #ffe58f; width: 14px; height: 14px; line-height: 14px; text-align: center;">&times;</button>' +
+        '<span style="white-space: nowrap;">Current override: <b>' +
+        (currentApp && currentValue ? currentApp + '@' + currentValue : 'none') +
+        '</b></span>' +
+        '<span>All overrides: <b>' + overridesArr.length + '</b></span>';
+      // Add close handler
+      banner.querySelector('.via-remote-override-banner-x').onclick = function(e) {
+        e.stopPropagation();
+        banner.remove();
+        // sessionStorage.setItem('via-remote-override-banner-hidden', '1');
+      };
+      header.prepend(banner);
+      return;
+    }
+    attempts++;
+    if (attempts < maxAttempts) {
+      setTimeout(tryInject, 500);
+    }
+  }
+  tryInject();
+}
+
 // Log current page override and all overrides
 (function logOverrides() {
   try {
@@ -46,6 +82,8 @@ chrome.runtime.sendMessage({
       if (typeof chrome !== 'undefined' && chrome.runtime) {
         chrome.runtime.sendMessage({ type: 'SET_BADGE', hasOverride: false });
       }
+      // Remove any existing banner if present
+      injectBannerWithRetry(null, null, []);
       return;
     }
     // Print all overrides
@@ -65,6 +103,9 @@ chrome.runtime.sendMessage({
         break;
       }
     }
+    // --- Inject banner with retry ---
+    injectBannerWithRetry(currentApp, currentValue, overridesArr);
+    // --- End inject banner ---
     if (currentApp && currentValue) {
       console.log('%cCurrent page override:  ' + currentApp + '@' + currentValue, 'color: #b59f00; font-weight: bold;');
       // Notify background to set badge with count

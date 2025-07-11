@@ -36,3 +36,38 @@ chrome.runtime.sendMessage({
   type: 'PAGE_INFO',
   data: getPageInfo()
 }); 
+
+// Log current page override and all overrides
+(function logOverrides() {
+  try {
+    const allOverrides = localStorage.getItem('remoteOverrides') || '';
+    if (!allOverrides) {
+      console.log('No remote overrides set.');
+      return;
+    }
+    // Print all overrides
+    console.log('All overrides:', allOverrides);
+    // Try to find the override for the current app (by hostname or pathname)
+    const overridesArr = allOverrides.split(',');
+    let currentApp = null;
+    let currentValue = null;
+    // Try to match by pathname or hostname
+    for (const entry of overridesArr) {
+      const [app, value] = entry.split('@');
+      if (!app || !value) continue;
+      // Heuristic: if the app name is in the URL, consider it current
+      if (window.location.href.includes(app)) {
+        currentApp = app;
+        currentValue = value;
+        break;
+      }
+    }
+    if (currentApp && currentValue) {
+      console.log('%cCurrent page override:  ' + currentApp + '@' + currentValue, 'color: #b59f00; font-weight: bold;');
+    } else {
+      console.log('Current page override:  none');
+    }
+  } catch (e) {
+    console.log('Error logging overrides:', e);
+  }
+})(); 

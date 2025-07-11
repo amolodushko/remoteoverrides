@@ -20,6 +20,10 @@ const SettingsModal = ({
   const selectedApps = useAppSelectionStore((state) => state.selectedApps || []);
   const allApps = getAllApps();
 
+  const draggedAppKey = useAppSelectionStore((state) => state.draggedAppKey);
+  const setDraggedApp = useAppSelectionStore((state) => state.setDraggedApp);
+  const storeHandleDrop = useAppSelectionStore((state) => state.handleDrop);
+
   // Autorefresh state from store
   const autorefresh = useOverrideStore((state) => state.autorefresh);
   const setAutorefresh = useOverrideStore((state) => state.setAutorefresh);
@@ -32,6 +36,26 @@ const SettingsModal = ({
 
   const handleDeselectAll = () => {
     setSelectedApps([]);
+  };
+
+  const handleDragStart = (e: React.DragEvent, appKey: string) => {
+    setDraggedApp(appKey);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', appKey);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, targetAppKey: string) => {
+    e.preventDefault();
+    storeHandleDrop(targetAppKey);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedApp(null);
   };
 
   const selectedCount = selectedApps.length;
@@ -114,13 +138,42 @@ const SettingsModal = ({
           {allApps.map((app) => (
             <div
               key={app.key}
-              className="flex items-center space-x-3 p-1 hover:bg-gray-50 rounded"
+              draggable
+              onDragStart={(e) => handleDragStart(e, app.key)}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, app.key)}
+              onDragEnd={handleDragEnd}
+              className={`flex items-center space-x-2 p-1 rounded transition-all duration-200 ${
+                draggedAppKey === app.key
+                  ? 'opacity-50 bg-blue-50 border-2 border-blue-200'
+                  : draggedAppKey && draggedAppKey !== app.key
+                  ? 'hover:bg-blue-50 border-2 border-transparent hover:border-blue-200'
+                  : 'hover:bg-gray-50 border-2 border-transparent'
+              }`}
             >
+              {/* Drag Handle */}
+              <div className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 8h16M4 16h16"
+                  />
+                </svg>
+              </div>
+
               <input
                 type="checkbox"
                 checked={selectedApps.includes(app.key)}
                 onChange={() => toggleApp(app.key)}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                onClick={(e) => e.stopPropagation()}
               />
               <div className="flex-1">
                 <span className="text-sm font-medium text-gray-900">
@@ -131,9 +184,13 @@ const SettingsModal = ({
                   • {app.key}@ • {app.path}
                 </span>
               </div>
+              
               {isCustomApp(app.key) && (
                 <button
-                  onClick={() => deleteApp(app.key)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteApp(app.key);
+                  }}
                   className="text-red-500 hover:text-red-700 p-1"
                   title="Delete app"
                 >

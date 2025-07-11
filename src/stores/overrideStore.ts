@@ -13,13 +13,15 @@ interface OverrideStore {
   setOverride: (app: string, data: OverrideData) => void;
   removeOverride: (app: string) => void;
   getOverride: (app: string) => OverrideData | null;
+  autorefresh: boolean;
+  setAutorefresh: (value: boolean) => void;
 }
 
 export const useOverrideStore = create<OverrideStore>()(
   persist(
     (set, get) => ({
       overrides: {},
-      
+      autorefresh: true,
       setOverride: (app: string, data: OverrideData) => {
         set((state) => ({
           overrides: {
@@ -28,7 +30,6 @@ export const useOverrideStore = create<OverrideStore>()(
           },
         }));
       },
-      
       removeOverride: (app: string) => {
         set((state) => {
           const newOverrides = { ...state.overrides };
@@ -36,10 +37,10 @@ export const useOverrideStore = create<OverrideStore>()(
           return { overrides: newOverrides };
         });
       },
-      
       getOverride: (app: string) => {
         return get().overrides[app] || null;
       },
+      setAutorefresh: (value: boolean) => set({ autorefresh: value }),
     }),
     {
       name: 'override-storage',
@@ -54,7 +55,8 @@ export const useOverrideStore = create<OverrideStore>()(
               // override field is completely excluded from persistence
             }
           ])
-        )
+        ),
+        autorefresh: state.autorefresh,
       })
     }
   )

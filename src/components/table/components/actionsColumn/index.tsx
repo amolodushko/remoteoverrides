@@ -4,6 +4,7 @@ import { useOverrideStore } from "../../../../stores/overrideStore";
 const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
   const setOverride = useOverrideStore((state) => state.setOverride);
   const getOverride = useOverrideStore((state) => state.getOverride);
+  const autorefresh = useOverrideStore((state) => state.autorefresh);
   const [selected, setSelected] = useState(0);
   const [inputs, setInputs] = useState(["", ""]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -82,6 +83,15 @@ const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
       });
     }
 
+    if (autorefresh && typeof chrome !== "undefined" && chrome.tabs) {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const currentTab = tabs[0];
+        if (currentTab && currentTab.id) {
+          chrome.tabs.reload(currentTab.id);
+        }
+      });
+    }
+
     console.log("applied", dataToSave, app);
   };
 
@@ -109,6 +119,14 @@ const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
     // Remove focus from chevron button
     if (chevronButtonRef.current) {
       chevronButtonRef.current.blur();
+    }
+    if (autorefresh && typeof chrome !== "undefined" && chrome.tabs) {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const currentTab = tabs[0];
+        if (currentTab && currentTab.id) {
+          chrome.tabs.reload(currentTab.id);
+        }
+      });
     }
 
     console.log("reset", app);

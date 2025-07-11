@@ -1,4 +1,5 @@
 import { useAppSelectionStore } from "../../stores/appSelectionStore";
+import { useOverrideStore } from "../../stores/overrideStore";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -18,6 +19,10 @@ const SettingsModal = ({
   const isCustomApp = useAppSelectionStore((state) => state.isCustomApp);
   const selectedApps = useAppSelectionStore((state) => state.selectedApps || []);
   const allApps = getAllApps();
+
+  // Autorefresh state from store
+  const autorefresh = useOverrideStore((state) => state.autorefresh);
+  const setAutorefresh = useOverrideStore((state) => state.setAutorefresh);
 
   if (!isOpen) return null;
 
@@ -67,6 +72,20 @@ const SettingsModal = ({
               />
             </svg>
           </button>
+        </div>
+
+        {/* Autorefresh Section */}
+        <div className="mb-4 flex items-center gap-2 p-2 bg-gray-50 rounded">
+          <input
+            id="autorefresh-checkbox"
+            type="checkbox"
+            checked={autorefresh}
+            onChange={e => setAutorefresh(e.target.checked)}
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <label htmlFor="autorefresh-checkbox" className="text-sm text-gray-800 select-none cursor-pointer">
+            Autorefresh (reload page after Apply/Reset)
+          </label>
         </div>
 
         <div className="mb-2">

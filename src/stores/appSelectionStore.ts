@@ -118,8 +118,7 @@ export const useAppSelectionStore = create<AppSelectionStore>()(
         });
       },
       isCustomApp: (appKey: string) => {
-        const app = get().apps.find(app => app.key === appKey);
-        return app ? app.id > 3 : false;
+        return !allApps.some(app => app.key === appKey);
       },
     }),
     {

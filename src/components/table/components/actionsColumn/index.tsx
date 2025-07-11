@@ -2,7 +2,9 @@ import { useRef, useState, useEffect } from "react";
 import { useOverrideStore } from "../../../../stores/overrideStore";
 
 const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
-  const { setOverride, removeOverride, getOverride } = useOverrideStore();
+  const setOverride = useOverrideStore((state) => state.setOverride);
+  const removeOverride = useOverrideStore((state) => state.removeOverride);
+  const getOverride = useOverrideStore((state) => state.getOverride);
   const [selected, setSelected] = useState(0);
   const [inputs, setInputs] = useState(["", ""]);
   const inputRefs = [

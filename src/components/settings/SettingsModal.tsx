@@ -11,11 +11,12 @@ const SettingsModal = ({
   onClose,
   onCreateAppClick,
 }: SettingsModalProps) => {
-  const { getAllApps, toggleApp, setSelectedApps, deleteApp, isCustomApp } =
-    useAppSelectionStore();
-  const selectedApps = useAppSelectionStore(
-    (state) => state.selectedApps || []
-  );
+  const getAllApps = useAppSelectionStore((state) => state.getAllApps);
+  const toggleApp = useAppSelectionStore((state) => state.toggleApp);
+  const setSelectedApps = useAppSelectionStore((state) => state.setSelectedApps);
+  const deleteApp = useAppSelectionStore((state) => state.deleteApp);
+  const isCustomApp = useAppSelectionStore((state) => state.isCustomApp);
+  const selectedApps = useAppSelectionStore((state) => state.selectedApps || []);
   const allApps = getAllApps();
 
   if (!isOpen) return null;

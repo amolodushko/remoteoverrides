@@ -10,7 +10,7 @@ import type { AppData } from './stores/appSelectionStore'
 function App() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const { addApp } = useAppSelectionStore();
+  const addApp = useAppSelectionStore((state) => state.addApp);
 
   const handleSaveNewApp = (newApp: Omit<AppData, 'id'>) => {
     addApp(newApp);

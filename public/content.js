@@ -43,12 +43,15 @@ chrome.runtime.sendMessage({
     const allOverrides = localStorage.getItem('remoteOverrides') || '';
     if (!allOverrides) {
       console.log('No remote overrides set.');
+      if (typeof chrome !== 'undefined' && chrome.runtime) {
+        chrome.runtime.sendMessage({ type: 'SET_BADGE', hasOverride: false });
+      }
       return;
     }
     // Print all overrides
     console.log('All overrides:', allOverrides);
     // Try to find the override for the current app (by hostname or pathname)
-    const overridesArr = allOverrides.split(',');
+    const overridesArr = allOverrides.split(',').filter(Boolean);
     let currentApp = null;
     let currentValue = null;
     // Try to match by pathname or hostname
@@ -64,8 +67,15 @@ chrome.runtime.sendMessage({
     }
     if (currentApp && currentValue) {
       console.log('%cCurrent page override:  ' + currentApp + '@' + currentValue, 'color: #b59f00; font-weight: bold;');
+      // Notify background to set badge with count
+      if (typeof chrome !== 'undefined' && chrome.runtime) {
+        chrome.runtime.sendMessage({ type: 'SET_BADGE', hasOverride: true, badgeText: String(overridesArr.length), title: 'Override: ' + currentApp + '@' + currentValue });
+      }
     } else {
       console.log('Current page override:  none');
+      if (typeof chrome !== 'undefined' && chrome.runtime) {
+        chrome.runtime.sendMessage({ type: 'SET_BADGE', hasOverride: true, badgeText: String(overridesArr.length), title: 'Remote Override Manager' });
+      }
     }
   } catch (e) {
     console.log('Error logging overrides:', e);

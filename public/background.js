@@ -136,4 +136,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
     return true; // Keep message channel open for async response
   }
+
+  // Handle badge setting from content script
+  if (request.type === 'SET_BADGE') {
+    if (request.hasOverride && request.badgeText) {
+      const badge = String(request.badgeText).slice(0, 4);
+      chrome.action.setBadgeText({ text: badge, tabId: sender.tab ? sender.tab.id : undefined });
+      chrome.action.setBadgeBackgroundColor({ color: '#b59f00', tabId: sender.tab ? sender.tab.id : undefined });
+      chrome.action.setTitle({ title: request.title || 'Remote Override Manager', tabId: sender.tab ? sender.tab.id : undefined });
+    } else {
+      chrome.action.setBadgeText({ text: '', tabId: sender.tab ? sender.tab.id : undefined });
+      chrome.action.setTitle({ title: 'Remote Override Manager', tabId: sender.tab ? sender.tab.id : undefined });
+    }
+    return;
+  }
 }); 

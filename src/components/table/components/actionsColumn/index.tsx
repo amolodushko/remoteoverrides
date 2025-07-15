@@ -167,7 +167,12 @@ const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
                 onFocus={() => handleInputFocus(idx)}
                 onChange={(e) => handleInputChange(idx, e.target.value)}
                 onBlur={handleInputBlur}
-                className="px-1 py-1 w-60 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`px-1 py-1 w-60 border border-gray-300 rounded-md 
+                  focus:outline-none focus:ring-2 focus:ring-blue-500
+                  placeholder:text-xs
+                  placeholder:text-gray-400
+                  placeholder:italic
+                `}
                 placeholder={`Branch name to override ${label}`}
               />
             </label>
@@ -185,7 +190,7 @@ const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
           >
             <div className="flex shadow-md rounded-[6px] overflow-hidden border border-blue-600 bg-blue-600 group-hover:shadow-lg transition-all duration-150">
               <button
-                className="bg-blue-600 text-white px-5 py-1 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-150 hover:bg-blue-700 rounded-l-[6px]"
+                className="bg-blue-600 text-white px-2 py-1 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-150 hover:bg-blue-700 rounded-l-[6px]"
                 onClick={onApply}
                 tabIndex={0}
                 style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
@@ -194,7 +199,7 @@ const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
               </button>
               <button
                 ref={chevronButtonRef}
-                className={`bg-blue-500 text-white w-8 h-8 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-150 hover:bg-blue-700 border-l border-blue-400 ${
+                className={`bg-blue-500 text-white w-6 h-8 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-150 hover:bg-blue-700 border-l border-blue-400 ${
                   isDropdownOpen ? "bg-blue-700" : ""
                 } rounded-r-[6px]`}
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}

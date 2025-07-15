@@ -5,7 +5,7 @@ const OverrideColumn = ({ app }: { app: string }) => {
   const override = useOverrideValue(app);
 
   return (
-    <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-500 w-[340px] max-w-[340px]">
+    <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-500 w-[360px] max-w-[360px]">
       <span
         data-tooltip-id={`tooltip-app-${app}`}
         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full max-w-full overflow-hidden ${

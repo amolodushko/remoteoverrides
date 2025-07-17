@@ -157,4 +157,54 @@ async function logOverrides() {
 (async function init() {
   // Log overrides (now uses app selection data for proper matching)
   await logOverrides();
-})(); 
+})();
+
+// Watch for URL changes (for SPA navigation)
+let currentUrl = window.location.href;
+let isUpdating = false;
+
+// Function to check if URL has changed
+async function checkUrlChange() {
+  if (window.location.href !== currentUrl && !isUpdating) {
+    console.log('URL changed, updating banner...', window.location.href);
+    currentUrl = window.location.href;
+    isUpdating = true;
+    try {
+      await logOverrides();
+    } catch (error) {
+      console.error('Error updating banner:', error);
+    } finally {
+      isUpdating = false;
+    }
+  }
+}
+
+// Check for URL changes periodically
+setInterval(checkUrlChange, 1000);
+
+// Also listen for popstate events (browser back/forward)
+window.addEventListener('popstate', async () => {
+  console.log('Browser navigation detected, updating banner...');
+  await new Promise(resolve => setTimeout(resolve, 100)); // Small delay to ensure URL is updated
+  await checkUrlChange();
+});
+
+// Listen for pushstate/replacestate events (programmatic navigation)
+const originalPushState = history.pushState;
+const originalReplaceState = history.replaceState;
+
+history.pushState = function(...args) {
+  originalPushState.apply(history, args);
+  console.log('pushState detected, updating banner...');
+  setTimeout(async () => {
+    await checkUrlChange();
+  }, 100);
+};
+
+history.replaceState = function(...args) {
+  originalReplaceState.apply(history, args);
+  console.log('replaceState detected, updating banner...');
+  setTimeout(async () => {
+    await checkUrlChange();
+  }, 100);
+}; 

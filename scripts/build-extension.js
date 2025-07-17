@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,7 +32,30 @@ fs.copyFileSync(contentPath, contentDest);
 
 console.log('Chrome extension build complete!');
 console.log('Files created in dist/ directory');
-console.log('To load the extension:');
+
+// Create zip file
+console.log('Creating zip file...');
+try {
+  const zipFileName = 'via-remote-app-extension.zip';
+  const zipPath = path.join(__dirname, '..', zipFileName);
+  
+  // Remove existing zip if it exists
+  if (fs.existsSync(zipPath)) {
+    fs.unlinkSync(zipPath);
+  }
+  
+  // Create zip file
+  execSync(`cd "${distDir}" && zip -r "../${zipFileName}" .`, { stdio: 'inherit' });
+  
+  console.log(`✅ Zip file created: ${zipFileName}`);
+  console.log(`📁 Location: ${zipPath}`);
+} catch (error) {
+  console.error('❌ Error creating zip file:', error.message);
+  console.log('💡 Make sure you have zip command available on your system');
+}
+
+console.log('\nTo load the extension:');
 console.log('1. Open Chrome and go to chrome://extensions/');
 console.log('2. Enable "Developer mode"');
-console.log('3. Click "Load unpacked" and select the dist/ directory'); 
+console.log('3. Click "Load unpacked" and select the dist/ directory');
+console.log('4. Or drag and drop the .zip file to install'); 

@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:extension": "npm run build && node scripts/build-extension.js",
+    "zip:extension": "node scripts/zip-extension.js",
+    "build:extension:zip": "npm run build:extension && npm run zip:extension",
     "lint": "eslint .",
     "preview": "vite preview"
   },

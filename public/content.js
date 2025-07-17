@@ -72,6 +72,22 @@ function injectBannerWithRetry(currentApp, currentValue, overridesArr) {
   tryInject();
 }
 
+// Function to read app selection storage
+function readAppSelectionStorage() {
+  return new Promise((resolve) => {
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.local.get(['app-selection-storage'], (result) => {
+        const appSelectionData = result['app-selection-storage'];
+        console.log('App selection storage:', appSelectionData);
+        resolve(appSelectionData);
+      });
+    } else {
+      console.log('Chrome storage API not available');
+      resolve(null);
+    }
+  });
+}
+
 // Log current page override and all overrides
 (function logOverrides() {
   try {
@@ -120,4 +136,13 @@ function injectBannerWithRetry(currentApp, currentValue, overridesArr) {
   } catch (e) {
     console.log('Error logging overrides:', e);
   }
-})(); 
+})();
+
+// Read app selection storage on page load
+readAppSelectionStorage().then(({state}) => {
+  if (state) {
+    console.log('Selected apps:', state.selectedApps);
+    console.log('All apps:', state.apps);
+    console.log('App order:', state.appOrder);
+  }
+}); 

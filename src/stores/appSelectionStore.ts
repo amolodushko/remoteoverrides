@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { chromeStorage } from "./chromeStorage";
 
 export interface AppData {
   id: number;
@@ -156,6 +157,7 @@ export const useAppSelectionStore = create<AppSelectionStore>()(
     }),
     {
       name: "app-selection-storage",
+      storage: chromeStorage,
       partialize: (state) => ({
         selectedApps: state.selectedApps,
         apps: [

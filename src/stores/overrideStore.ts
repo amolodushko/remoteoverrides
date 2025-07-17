@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { chromeStorage } from './chromeStorage';
 
 interface OverrideData {
   override: string;
@@ -44,6 +45,7 @@ export const useOverrideStore = create<OverrideStore>()(
     }),
     {
       name: 'override-storage',
+      storage: chromeStorage,
       partialize: (state) => ({
         overrides: Object.fromEntries(
           Object.entries(state.overrides).map(([app, data]) => [

@@ -54,7 +54,7 @@ function injectBannerWithRetry(currentApp, currentValue, overridesArr) {
         '<span style="white-space: nowrap;">Current override: <b>' +
         (currentApp && currentValue ? currentApp + '@' + currentValue : 'none') +
         '</b></span>' +
-        '<span>All overrides: <b>' + overridesArr.length + '</b></span>';
+        '<span>All overrides count: <b>' + overridesArr.length + '</b></span>';
       // Add close handler
       banner.querySelector('.via-remote-override-banner-x').onclick = function(e) {
         e.stopPropagation();
@@ -78,7 +78,6 @@ function readAppSelectionStorage() {
     if (typeof chrome !== 'undefined' && chrome.storage) {
       chrome.storage.local.get(['app-selection-storage'], (result) => {
         const appSelectionData = result['app-selection-storage'];
-        console.log('App selection storage:', appSelectionData);
         resolve(appSelectionData);
       });
     } else {
@@ -89,7 +88,7 @@ function readAppSelectionStorage() {
 }
 
 // Log current page override and all overrides
-(function logOverrides() {
+async function logOverrides() {
   try {
     const allOverrides = localStorage.getItem('remoteOverrides') || '';
     if (!allOverrides) {
@@ -101,26 +100,42 @@ function readAppSelectionStorage() {
       injectBannerWithRetry(null, null, []);
       return;
     }
+    
+    // Get app selection data to properly match current app
+    const appSelectionData = await readAppSelectionStorage();
+    const allApps = appSelectionData?.state?.apps || [];
+    
     // Print all overrides
-    console.log('All overrides:', allOverrides);
-    // Try to find the override for the current app (by hostname or pathname)
+    console.log('%cAll overrides::  ' +allOverrides, 'color: #b59f00; font-weight: bold;');
+     
+    // Try to find the override for the current app using path matching
     const overridesArr = allOverrides.split(',').filter(Boolean);
     let currentApp = null;
     let currentValue = null;
-    // Try to match by pathname or hostname
-    for (const entry of overridesArr) {
-      const [app, value] = entry.split('@');
-      if (!app || !value) continue;
-      // Heuristic: if the app name is in the URL, consider it current
-      if (window.location.href.includes(app)) {
-        currentApp = app;
-        currentValue = value;
-        break;
+    
+    // Find current app by matching pathname with app paths
+    const currentPathname = window.location.pathname;
+    const currentAppData = allApps.find(app => {
+      return currentPathname.includes(app.path);
+    });
+    
+    if (currentAppData) {
+      // Find override for this app
+      for (const entry of overridesArr) {
+        const [app, value] = entry.split('@');
+        if (!app || !value) continue;
+        if (app === currentAppData.key) {
+          currentApp = app;
+          currentValue = value;
+          break;
+        }
       }
     }
+    
     // --- Inject banner with retry ---
     injectBannerWithRetry(currentApp, currentValue, overridesArr);
     // --- End inject banner ---
+    
     if (currentApp && currentValue) {
       console.log('%cCurrent page override:  ' + currentApp + '@' + currentValue, 'color: #b59f00; font-weight: bold;');
       // Notify background to set badge with count
@@ -128,7 +143,7 @@ function readAppSelectionStorage() {
         chrome.runtime.sendMessage({ type: 'SET_BADGE', hasOverride: true, badgeText: String(overridesArr.length), title: 'Override: ' + currentApp + '@' + currentValue });
       }
     } else {
-      console.log('Current page override:  none');
+      console.log('Current page override:  -- none --');
       if (typeof chrome !== 'undefined' && chrome.runtime) {
         chrome.runtime.sendMessage({ type: 'SET_BADGE', hasOverride: true, badgeText: String(overridesArr.length), title: 'Remote Override Manager' });
       }
@@ -136,13 +151,10 @@ function readAppSelectionStorage() {
   } catch (e) {
     console.log('Error logging overrides:', e);
   }
-})();
+}
 
-// Read app selection storage on page load
-readAppSelectionStorage().then(({state}) => {
-  if (state) {
-    console.log('Selected apps:', state.selectedApps);
-    console.log('All apps:', state.apps);
-    console.log('App order:', state.appOrder);
-  }
-}); 
+// Initialize on page load
+(async function init() {
+  // Log overrides (now uses app selection data for proper matching)
+  await logOverrides();
+})(); 

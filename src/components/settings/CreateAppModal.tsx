@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { AppData } from "../../stores/appSelectionStore";
+import type { AppData } from "../../constants/apps";
 import { useAppSelectionStore } from "../../stores/appSelectionStore";
 
 interface CreateAppModalProps {

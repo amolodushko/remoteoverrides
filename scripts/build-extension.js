@@ -30,6 +30,11 @@ const contentPath = path.join(__dirname, '../public/content.js');
 const contentDest = path.join(distDir, 'content.js');
 fs.copyFileSync(contentPath, contentDest);
 
+// Copy apps-constants.js
+const appsConstantsPath = path.join(__dirname, '../public/apps-constants.js');
+const appsConstantsDest = path.join(distDir, 'apps-constants.js');
+fs.copyFileSync(appsConstantsPath, appsConstantsDest);
+
 console.log('Chrome extension build complete!');
 console.log('Files created in dist/ directory');
 

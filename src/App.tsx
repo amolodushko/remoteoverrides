@@ -6,7 +6,7 @@ import SettingsModal from './components/settings/SettingsModal'
 import CreateAppModal from './components/settings/CreateAppModal'
 import { useAppSelectionStore } from './stores/appSelectionStore'
 import { useOverrideStore } from './stores/overrideStore'
-import type { AppData } from './stores/appSelectionStore'
+import type { AppData } from './constants/apps'
 
 function App() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);

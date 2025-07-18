@@ -77,8 +77,27 @@ function readAppSelectionStorage() {
   return new Promise((resolve) => {
     if (typeof chrome !== 'undefined' && chrome.storage) {
       chrome.storage.local.get(['app-selection-storage'], (result) => {
+    
         const appSelectionData = result['app-selection-storage'];
-        resolve(appSelectionData);
+  
+        
+        // If no app selection data exists, request initialization
+        if (!appSelectionData) {
+          chrome.runtime.sendMessage({ type: 'INITIALIZE_STORAGE' }, (response) => {
+            if (response && response.success) {
+             // Try reading again after a short delay
+              setTimeout(() => {
+                chrome.storage.local.get(['app-selection-storage'], (retryResult) => {
+                 resolve(retryResult['app-selection-storage']);
+                });
+              }, 100);
+            } else {
+              resolve(null);
+            }
+          });
+        } else {
+          resolve(appSelectionData);
+        }
       });
     } else {
       console.log('Chrome storage API not available');

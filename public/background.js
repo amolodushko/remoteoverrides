@@ -1,7 +1,56 @@
+// Import shared constants
+importScripts('apps-constants.js');
+
 // Background service worker for Remote Override Manager
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Remote Override Manager extension installed');
+  
+  // Initialize storage with default values immediately upon installation
+  initializeStorageOnInstall();
 });
+
+// Function to initialize storage with default values
+function initializeStorageOnInstall() {
+  // Use shared default apps from apps-constants.js
+  const defaultApps = self.defaultApps;
+
+  // Check if storage already exists
+  chrome.storage.local.get(['app-selection-storage', 'override-storage'], (result) => {
+    const storageToCreate = {};
+    
+    // Create app-selection-storage if it doesn't exist
+    if (!result['app-selection-storage']) {
+      storageToCreate['app-selection-storage'] = {
+        state: {
+          selectedApps: defaultApps.map((app) => app.key),
+          apps: defaultApps,
+          appOrder: defaultApps.map((app) => app.key),
+        },
+        version: 0
+      };
+      console.log('Created app-selection-storage with default values');
+    }
+    
+    // Create override-storage if it doesn't exist
+    if (!result['override-storage']) {
+      storageToCreate['override-storage'] = {
+        state: {
+          overrides: {},
+          autorefresh: true,
+        },
+        version: 0
+      };
+      console.log('Created override-storage with default values');
+    }
+    
+    // Save the storage if we need to create anything
+    if (Object.keys(storageToCreate).length > 0) {
+      chrome.storage.local.set(storageToCreate, () => {
+        console.log('Storage initialization complete');
+      });
+    }
+  });
+}
 
 // Handle messages from content script or popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -175,6 +224,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       chrome.action.setBadgeText({ text: '', tabId: sender.tab ? sender.tab.id : undefined });
       chrome.action.setTitle({ title: 'Remote Override Manager', tabId: sender.tab ? sender.tab.id : undefined });
     }
+    return;
+  }
+
+  // Handle storage initialization request from content script
+  if (request.type === 'INITIALIZE_STORAGE') {
+    initializeStorageOnInstall();
+    sendResponse({ success: true, message: 'Storage initialization requested' });
     return;
   }
 }); 

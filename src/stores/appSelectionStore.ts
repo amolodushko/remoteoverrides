@@ -1,14 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { chromeStorage } from "./chromeStorage";
-
-export interface AppData {
-  id: number;
-  app: string;
-  label: string;
-  key: string;
-  path: string;
-}
+import { defaultApps, type AppData } from "../constants/apps";
 
 interface AppSelectionStore {
   selectedApps: string[];
@@ -27,43 +20,14 @@ interface AppSelectionStore {
   ensureStorageExists: () => Promise<void>;
 }
 
-export const allApps: AppData[] = [
-  {
-    id: 1,
-    app: "Rp",
-    label: "Ride Plan",
-    key: "ride-plan",
-    path: "/planning/ride-planner",
-  },
-  {
-    id: 2,
-    app: "Neo",
-    label: "Neo",
-    key: "via-hub-dev",
-    path: "/network-optimizer",
-  },
-  {
-    id: 5,
-    app: "Sm",
-    label: "Shift Manager",
-    key: "shift-manager",
-    path: "/shift-manager",
-  },
-  {
-    id: 3,
-    app: "Fl",
-    label: "Flexity",
-    key: "configuration-service",
-    path: "/configuration-service",
-  },
-];
+
 
 export const useAppSelectionStore = create<AppSelectionStore>()(
   persist(
     (set, get) => ({
-      selectedApps: allApps.map((app) => app.key), // Default to all selected
-      apps: [...allApps],
-      appOrder: allApps.map((app) => app.key), // Initialize with default order
+      selectedApps: defaultApps.map((app) => app.key), // Default to all selected
+      apps: [...defaultApps],
+      appOrder: defaultApps.map((app) => app.key), // Initialize with default order
       draggedAppKey: null,
       toggleApp: (appKey: string) => {
         set((state) => {
@@ -125,7 +89,7 @@ export const useAppSelectionStore = create<AppSelectionStore>()(
         });
       },
       isCustomApp: (appKey: string) => {
-        return !allApps.some((app) => app.key === appKey);
+        return !defaultApps.some((app) => app.key === appKey);
       },
       setDraggedApp: (appKey: string | null) => {
         set({ draggedAppKey: appKey });
@@ -163,9 +127,9 @@ export const useAppSelectionStore = create<AppSelectionStore>()(
               // If storage doesn't exist, create it with default values
               if (!result['app-selection-storage']) {
                 const defaultState = {
-                  selectedApps: allApps.map((app) => app.key),
-                  apps: [...allApps],
-                  appOrder: allApps.map((app) => app.key),
+                  selectedApps: defaultApps.map((app) => app.key),
+                  apps: [...defaultApps],
+                  appOrder: defaultApps.map((app) => app.key),
                 };
                 
                 // Force persist the default state
@@ -186,12 +150,12 @@ export const useAppSelectionStore = create<AppSelectionStore>()(
       partialize: (state) => ({
         selectedApps: state.selectedApps,
         apps: [
-          ...allApps,
+          ...defaultApps,
           ...state.apps.filter(
-            (app) => !allApps.some((a) => a.key === app.key)
+            (app) => !defaultApps.some((a) => a.key === app.key)
           ),
         ],
-        appOrder: state.appOrder || allApps.map((app) => app.key),
+        appOrder: state.appOrder || defaultApps.map((app) => app.key),
       }),
       onRehydrateStorage: () => (state) => {
         // This callback is called when the store is rehydrated
@@ -199,9 +163,9 @@ export const useAppSelectionStore = create<AppSelectionStore>()(
         if (!state) {
           // Force persist the default state to ensure storage is created
           const defaultState = {
-            selectedApps: allApps.map((app) => app.key),
-            apps: [...allApps],
-            appOrder: allApps.map((app) => app.key),
+            selectedApps: defaultApps.map((app) => app.key),
+            apps: [...defaultApps],
+            appOrder: defaultApps.map((app) => app.key),
           };
           // Trigger a set to force persistence
           useAppSelectionStore.setState(defaultState);

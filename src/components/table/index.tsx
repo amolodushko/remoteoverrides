@@ -47,12 +47,12 @@ const Table = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      <div className="overflow-hidden border border-gray-200 rounded-lg">
-        <div className="overflow-x-auto">
+    <div className="w-full max-w-4xl mx-auto pb-2">
+      <div className="">
+        <div>
           <table className="w-full">
             <TableHeader />
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white  divide-y divide-gray-200">
               {data.length > 0 ? (
                 data.map((row) => (
                   <tr key={row.id} className="hover:bg-gray-50">
@@ -62,7 +62,7 @@ const Table = () => {
                   </tr>
                 ))
               ) : (
-                <tr>
+                <tr className="border border-gray-200">
                   <td colSpan={3} className="px-6 py-12 text-center">
                     <div className="text-gray-500">
                       <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

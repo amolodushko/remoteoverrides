@@ -10,7 +10,7 @@ const NameColumn = ({
   label: string;
 }) => {
   return (
-    <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+    <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-900 border-l border-gray-200">
       <span
         data-tooltip-id={`tooltip-app-${id}`}
         className="cursor-pointer"

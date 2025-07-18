@@ -146,7 +146,7 @@ const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
   };
 
   return (
-    <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+    <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200">
       <div className="flex items-center space-x-2">
         <div
           data-attr="radio-and-field-container"

@@ -51,8 +51,8 @@ function injectBannerWithRetry(currentApp, currentValue, overridesArr) {
       banner.style.cssText = `background: #fffbe6; color: #b59f00; border: 1px solid #ffe58f; border-radius: 6px; padding: 4px 12px; margin-bottom: 8px; font-size: 13px; font-family: inherit; font-weight: 500; display: flex; align-items: center; gap: 4px; flex-direction: column; margin-left: 300px; position: absolute; z-index: 8;`;
       banner.innerHTML =
         '<button class="via-remote-override-banner-x" style="position:absolute;top:2px;right:-15px;background:none;border:none;color:#b59f00;font-size:16px;cursor:pointer;line-height:1; border-radius: 6px; border: 1px solid #ffe58f; width: 14px; height: 14px; line-height: 14px; text-align: center;">&times;</button>' +
-        '<span style="white-space: nowrap;">Current override: <b>' +
-        (currentApp && currentValue ? currentApp + '@' + currentValue : 'none') +
+        '<span style="white-space: nowrap;">'+(currentValue? "Current override: " : "Unknown app: create new app in the extension settings")+'<b>' +
+        (currentApp && currentValue ? currentApp + '@' + currentValue : (!currentApp ? '' : 'none')) +
         '</b></span>' +
         '<span>All overrides count: <b>' + overridesArr.length + '</b></span>';
       // Add close handler

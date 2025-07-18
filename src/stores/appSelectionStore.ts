@@ -24,6 +24,7 @@ interface AppSelectionStore {
   isCustomApp: (appKey: string) => boolean;
   setDraggedApp: (appKey: string | null) => void;
   handleDrop: (targetAppKey: string) => void;
+  ensureStorageExists: () => Promise<void>;
 }
 
 export const allApps: AppData[] = [
@@ -154,6 +155,30 @@ export const useAppSelectionStore = create<AppSelectionStore>()(
           };
         });
       },
+      ensureStorageExists: async () => {
+        // Check if storage exists by trying to read it
+        if (typeof chrome !== 'undefined' && chrome.storage) {
+          try {
+            chrome.storage.local.get(['app-selection-storage'], (result) => {
+              // If storage doesn't exist, create it with default values
+              if (!result['app-selection-storage']) {
+                const defaultState = {
+                  selectedApps: allApps.map((app) => app.key),
+                  apps: [...allApps],
+                  appOrder: allApps.map((app) => app.key),
+                };
+                
+                // Force persist the default state
+                set(defaultState);
+                
+                console.log('Created app-selection-storage with default values');
+              }
+            });
+          } catch (error) {
+            console.error('Error checking/creating storage:', error);
+          }
+        }
+      },
     }),
     {
       name: "app-selection-storage",
@@ -168,6 +193,20 @@ export const useAppSelectionStore = create<AppSelectionStore>()(
         ],
         appOrder: state.appOrder || allApps.map((app) => app.key),
       }),
+      onRehydrateStorage: () => (state) => {
+        // This callback is called when the store is rehydrated
+        // If state is null, it means no storage existed, so we force persist the default state
+        if (!state) {
+          // Force persist the default state to ensure storage is created
+          const defaultState = {
+            selectedApps: allApps.map((app) => app.key),
+            apps: [...allApps],
+            appOrder: allApps.map((app) => app.key),
+          };
+          // Trigger a set to force persistence
+          useAppSelectionStore.setState(defaultState);
+        }
+      },
     }
   )
 );

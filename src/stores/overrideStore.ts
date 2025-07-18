@@ -16,6 +16,7 @@ interface OverrideStore {
   getOverride: (app: string) => OverrideData | null;
   autorefresh: boolean;
   setAutorefresh: (value: boolean) => void;
+  ensureStorageExists: () => Promise<void>;
 }
 
 export const useOverrideStore = create<OverrideStore>()(
@@ -42,6 +43,29 @@ export const useOverrideStore = create<OverrideStore>()(
         return get().overrides[app] || null;
       },
       setAutorefresh: (value: boolean) => set({ autorefresh: value }),
+      ensureStorageExists: async () => {
+        // Check if storage exists by trying to read it
+        if (typeof chrome !== 'undefined' && chrome.storage) {
+          try {
+            chrome.storage.local.get(['override-storage'], (result) => {
+              // If storage doesn't exist, create it with default values
+              if (!result['override-storage']) {
+                const defaultState = {
+                  overrides: {},
+                  autorefresh: true,
+                };
+                
+                // Force persist the default state
+                set(defaultState);
+                
+                console.log('Created override-storage with default values');
+              }
+            });
+          } catch (error) {
+            console.error('Error checking/creating override storage:', error);
+          }
+        }
+      },
     }),
     {
       name: 'override-storage',
@@ -59,7 +83,20 @@ export const useOverrideStore = create<OverrideStore>()(
           ])
         ),
         autorefresh: state.autorefresh,
-      })
+      }),
+      onRehydrateStorage: () => (state) => {
+        // This callback is called when the store is rehydrated
+        // If state is null, it means no storage existed, so we force persist the default state
+        if (!state) {
+          // Force persist the default state to ensure storage is created
+          const defaultState = {
+            overrides: {},
+            autorefresh: true,
+          };
+          // Trigger a set to force persistence
+          useOverrideStore.setState(defaultState);
+        }
+      },
     }
   )
 ); 

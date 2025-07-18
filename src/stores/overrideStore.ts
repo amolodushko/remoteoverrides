@@ -7,6 +7,7 @@ interface OverrideData {
   input_1: string;
   input_2: string;
   selection: number;
+  values: string[]; // List of unique input values (max 10)
 }
 
 interface OverrideStore {
@@ -78,6 +79,7 @@ export const useOverrideStore = create<OverrideStore>()(
               input_1: data.input_1,
               input_2: data.input_2,
               selection: data.selection,
+              values: data.values || [],
               // override field is completely excluded from persistence
             }
           ])

@@ -20,7 +20,16 @@ const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
     const existingData = getOverride(app);
     setInputs([existingData?.input_1 ?? "", existingData?.input_2 ?? ""]);
     setSelected(existingData?.selection ?? 0);
-  }, [app, getOverride]);
+    
+    // Ensure values field exists for backward compatibility
+    if (existingData && !existingData.values) {
+      const dataToSave = {
+        ...existingData,
+        values: [],
+      };
+      setOverride(app, dataToSave);
+    }
+  }, [app, getOverride, setOverride]);
 
   const handleRadioChange = (idx: number) => {
     setSelected(idx);
@@ -42,11 +51,27 @@ const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
   const handleInputBlur = () => {
     // Save current input values to store on blur
     const existingData = getOverride(app);
+    const currentValues = existingData?.values || [];
+    
+    // Add non-empty input values to the list, maintaining uniqueness and max size of 10
+    const newValues = [...currentValues];
+    inputs.forEach(input => {
+      const trimmedInput = input.trim();
+      if (trimmedInput && !newValues.includes(trimmedInput)) {
+        newValues.push(trimmedInput);
+        // Keep only the last 10 values
+        if (newValues.length > 10) {
+          newValues.shift();
+        }
+      }
+    });
+    
     const dataToSave = {
       override: existingData?.override || "",
       input_1: inputs[0],
       input_2: inputs[1],
       selection: selected,
+      values: newValues,
     };
     setOverride(app, dataToSave);
   };
@@ -64,11 +89,13 @@ const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
       return onReset();
     }
 
+    const existingData = getOverride(app);
     const dataToSave = {
       override: normalizeValue(value),
       input_1: inputs[0],
       input_2: inputs[1],
       selection: selected,
+      values: existingData?.values || [],
     };
 
     setOverride(app, dataToSave);
@@ -96,11 +123,13 @@ const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
   };
 
   const onReset = () => {
+    const existingData = getOverride(app);
     const dataToSave = {
       override: "",
       input_1: inputs[0],
       input_2: inputs[1],
       selection: selected,
+      values: existingData?.values || [],
     };
 
     setOverride(app, dataToSave);
@@ -152,31 +181,41 @@ const ActionsColumn = ({ app, label }: { app: string; label: string }) => {
           data-attr="radio-and-field-container"
           className="flex flex-col gap-1"
         >
-          {[0, 1].map((idx) => (
-            <label key={idx} className="flex items-center gap-2">
-              <input
-                type="radio"
-                checked={selected === idx}
-                onChange={() => handleRadioChange(idx)}
-                className="accent-blue-600"
-              />
-              <input
-                ref={inputRefs[idx]}
-                type="text"
-                value={inputs[idx]}
-                onFocus={() => handleInputFocus(idx)}
-                onChange={(e) => handleInputChange(idx, e.target.value)}
-                onBlur={handleInputBlur}
-                className={`px-1 py-1 w-60 border border-gray-300 rounded-md 
-                  focus:outline-none focus:ring-2 focus:ring-blue-500
-                  placeholder:text-xs
-                  placeholder:text-gray-400
-                  placeholder:italic
-                `}
-                placeholder={`Branch name to override ${label}`}
-              />
-            </label>
-          ))}
+          {(() => {
+            const existingData = getOverride(app);
+            const values = existingData?.values || [];
+            return [0, 1].map((idx) => (
+              <label key={idx} className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  checked={selected === idx}
+                  onChange={() => handleRadioChange(idx)}
+                  className="accent-blue-600"
+                />
+                <input
+                  ref={inputRefs[idx]}
+                  type="text"
+                  value={inputs[idx]}
+                  onFocus={() => handleInputFocus(idx)}
+                  onChange={(e) => handleInputChange(idx, e.target.value)}
+                  onBlur={handleInputBlur}
+                  list={`values-list-${app}-${idx}`}
+                  className={`px-1 py-1 w-60 border border-gray-300 rounded-md 
+                    focus:outline-none focus:ring-2 focus:ring-blue-500
+                    placeholder:text-xs
+                    placeholder:text-gray-400
+                    placeholder:italic
+                  `}
+                  placeholder={`Branch name to override ${label}`}
+                />
+                <datalist id={`values-list-${app}-${idx}`}>
+                  {values.map((value, valueIdx) => (
+                    <option key={valueIdx} value={value} />
+                  ))}
+                </datalist>
+              </label>
+            ));
+          })()}
         </div>
         <div
           data-attr="button-container"

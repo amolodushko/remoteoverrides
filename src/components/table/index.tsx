@@ -32,6 +32,7 @@ const Table = () => {
         input_1: currentOverride?.input_1 || "",
         input_2: currentOverride?.input_2 || "",
         selection: currentOverride?.selection || 0,
+        values: currentOverride?.values || [],
       });
     });
 

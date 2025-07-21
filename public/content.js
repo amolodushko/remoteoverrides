@@ -158,7 +158,7 @@ async function logOverrides() {
     // --- End inject banner ---
     
     if (currentApp && currentValue) {
-      console.log('%cCurrent page override:  ' + currentApp + '@' + currentValue, 'color: #b59f00; font-weight: bold;');
+      console.log('%cCurrent page override:  ' + currentAppKey + '@' + currentValue, 'color: #b59f00; font-weight: bold;');
       // Notify background to set badge with count
       if (typeof chrome !== 'undefined' && chrome.runtime) {
         chrome.runtime.sendMessage({ type: 'SET_BADGE', hasOverride: true, badgeText: String(overridesArr?.length), title: 'Override: ' + currentApp + '@' + currentValue });

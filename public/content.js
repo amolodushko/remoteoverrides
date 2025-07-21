@@ -37,7 +37,7 @@ chrome.runtime.sendMessage({
 }); 
 
 function injectBannerWithRetry(currentApp, currentAppKey, currentValue, overridesArr) {
-  const maxAttempts = 10; // 10 * 500ms = 5s
+  const maxAttempts = 4; // 10 * 500ms = 5s
   let attempts = 0;
   function tryInject() {
     const header = document.querySelector('[data-testid="voc-header"]');
@@ -54,7 +54,7 @@ function injectBannerWithRetry(currentApp, currentAppKey, currentValue, override
         '<span style="white-space: nowrap;">'+(currentApp? currentApp+" current override: " : "Unknown app: create new app in the extension settings")+'<b>' +
         (currentApp? (currentValue ? currentAppKey + '@' + currentValue : 'none') : '') +
         '</b></span>' +
-        '<span>Total overrides count: <b>' + overridesArr.length + '</b></span>';
+        '<span>Total overrides count: <b>' + overridesArr?.length ?? 0 + '</b></span>';
       // Add close handler
       banner.querySelector('.via-remote-override-banner-x').onclick = function(e) {
         e.stopPropagation();
@@ -66,7 +66,7 @@ function injectBannerWithRetry(currentApp, currentAppKey, currentValue, override
     }
     attempts++;
     if (attempts < maxAttempts) {
-      setTimeout(tryInject, 500);
+      setTimeout(tryInject, 5500);
     }
   }
   tryInject();
@@ -138,9 +138,6 @@ async function logOverrides() {
     const currentAppData = allApps.find(app => {
       return currentPathname.includes(app.path) || currentPathname.includes(app.key);
     });
-
-    console.log('currentAppData', currentAppData);
-  
     
     if (currentAppData) {
       currentApp = currentAppData?.label;
@@ -164,12 +161,12 @@ async function logOverrides() {
       console.log('%cCurrent page override:  ' + currentApp + '@' + currentValue, 'color: #b59f00; font-weight: bold;');
       // Notify background to set badge with count
       if (typeof chrome !== 'undefined' && chrome.runtime) {
-        chrome.runtime.sendMessage({ type: 'SET_BADGE', hasOverride: true, badgeText: String(overridesArr.length), title: 'Override: ' + currentApp + '@' + currentValue });
+        chrome.runtime.sendMessage({ type: 'SET_BADGE', hasOverride: true, badgeText: String(overridesArr?.length), title: 'Override: ' + currentApp + '@' + currentValue });
       }
     } else {
       console.log('Current page override:  -- none --');
       if (typeof chrome !== 'undefined' && chrome.runtime) {
-        chrome.runtime.sendMessage({ type: 'SET_BADGE', hasOverride: true, badgeText: String(overridesArr.length), title: 'Remote Override Manager' });
+        chrome.runtime.sendMessage({ type: 'SET_BADGE', hasOverride: true, badgeText: String(overridesArr?.length), title: 'Remote Override Manager' });
       }
     }
   } catch (e) {

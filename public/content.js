@@ -36,7 +36,7 @@ chrome.runtime.sendMessage({
   data: getPageInfo()
 }); 
 
-function injectBannerWithRetry(currentApp, currentValue, overridesArr) {
+function injectBannerWithRetry(currentApp, currentAppKey, currentValue, overridesArr) {
   const maxAttempts = 10; // 10 * 500ms = 5s
   let attempts = 0;
   function tryInject() {
@@ -51,10 +51,10 @@ function injectBannerWithRetry(currentApp, currentValue, overridesArr) {
       banner.style.cssText = `background: #fffbe6; color: #b59f00; border: 1px solid #ffe58f; border-radius: 6px; padding: 4px 12px; margin-bottom: 8px; font-size: 13px; font-family: inherit; font-weight: 500; display: flex; align-items: center; gap: 4px; flex-direction: column; margin-left: 300px; position: absolute; z-index: 8;`;
       banner.innerHTML =
         '<button class="via-remote-override-banner-x" style="position:absolute;top:2px;right:-15px;background:none;border:none;color:#b59f00;font-size:16px;cursor:pointer;line-height:1; border-radius: 6px; border: 1px solid #ffe58f; width: 14px; height: 14px; line-height: 14px; text-align: center;">&times;</button>' +
-        '<span style="white-space: nowrap;">'+(currentValue? "Current override: " : "Unknown app: create new app in the extension settings")+'<b>' +
-        (currentApp && currentValue ? currentApp + '@' + currentValue : (!currentApp ? '' : 'none')) +
+        '<span style="white-space: nowrap;">'+(currentApp? currentApp+" current override: " : "Unknown app: create new app in the extension settings")+'<b>' +
+        (currentApp? (currentValue ? currentAppKey + '@' + currentValue : 'none') : '') +
         '</b></span>' +
-        '<span>All overrides count: <b>' + overridesArr.length + '</b></span>';
+        '<span>Total overrides count: <b>' + overridesArr.length + '</b></span>';
       // Add close handler
       banner.querySelector('.via-remote-override-banner-x').onclick = function(e) {
         e.stopPropagation();
@@ -130,21 +130,26 @@ async function logOverrides() {
     // Try to find the override for the current app using path matching
     const overridesArr = allOverrides.split(',').filter(Boolean);
     let currentApp = null;
+    let currentAppKey = null;
     let currentValue = null;
     
     // Find current app by matching pathname with app paths
     const currentPathname = window.location.pathname;
     const currentAppData = allApps.find(app => {
-      return currentPathname.includes(app.path);
+      return currentPathname.includes(app.path) || currentPathname.includes(app.key);
     });
+
+    console.log('currentAppData', currentAppData);
+  
     
     if (currentAppData) {
+      currentApp = currentAppData?.label;
       // Find override for this app
       for (const entry of overridesArr) {
         const [app, value] = entry.split('@');
         if (!app || !value) continue;
         if (app === currentAppData.key) {
-          currentApp = app;
+          currentAppKey = app;
           currentValue = value;
           break;
         }
@@ -152,7 +157,7 @@ async function logOverrides() {
     }
     
     // --- Inject banner with retry ---
-    injectBannerWithRetry(currentApp, currentValue, overridesArr);
+    injectBannerWithRetry(currentAppData? currentApp : null, currentAppKey, currentValue, overridesArr);
     // --- End inject banner ---
     
     if (currentApp && currentValue) {

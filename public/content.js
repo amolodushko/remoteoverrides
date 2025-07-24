@@ -54,7 +54,7 @@ function injectBannerWithRetry(currentApp, currentAppKey, currentValue, override
         '<span style="white-space: nowrap;">'+(currentApp? currentApp+" current override: " : "Unknown app: create new app in the extension settings")+'<b>' +
         (currentApp? (currentValue ? currentAppKey + '@' + currentValue : 'none') : '') +
         '</b></span>' +
-        '<span>Total overrides count: <b>' + overridesArr?.length ?? 0 + '</b></span>';
+        '<span>Total overrides count: <b>' + (overridesArr?.length ?? 0) + '</b></span>';
       // Add close handler
       banner.querySelector('.via-remote-override-banner-x').onclick = function(e) {
         e.stopPropagation();

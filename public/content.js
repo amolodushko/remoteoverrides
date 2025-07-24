@@ -136,7 +136,7 @@ async function logOverrides() {
     // Find current app by matching pathname with app paths
     const currentPathname = window.location.pathname;
     const currentAppData = allApps.find(app => {
-      return currentPathname.includes(app.path) || currentPathname.includes(app.key);
+      return currentPathname.includes(app.path)
     });
     
     if (currentAppData) {
